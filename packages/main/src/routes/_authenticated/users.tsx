@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getUsers } from "@app/api";
 import { MasterDetailLayout } from "@/components/master-detail-layout";
 import { UserListPane } from "@/features/users/user-list-pane";
+import { UserListPaneSkeleton } from "@/features/users/user-list-pane.skeleton";
 
 const usersSearchSchema = z.object({
   q: z.string().optional(),
@@ -19,8 +20,20 @@ export const Route = createFileRoute("/_authenticated/users")({
     });
     return data!;
   },
+  pendingComponent: UsersLayoutPending,
+  pendingMs: 200,
+  pendingMinMs: 300,
   component: UsersLayout,
 });
+
+function UsersLayoutPending() {
+  return (
+    <MasterDetailLayout
+      list={<UserListPaneSkeleton />}
+      detail={<div />}
+    />
+  );
+}
 
 function UsersLayout() {
   const data = Route.useLoaderData();

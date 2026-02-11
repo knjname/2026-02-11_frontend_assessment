@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getTodos } from "@app/api";
 import { MasterDetailLayout } from "@/components/master-detail-layout";
 import { TodoListPane } from "@/features/todos/todo-list-pane";
+import { TodoListPaneSkeleton } from "@/features/todos/todo-list-pane.skeleton";
 
 const todosSearchSchema = z.object({
   q: z.string().optional(),
@@ -26,8 +27,20 @@ export const Route = createFileRoute("/_authenticated/todos")({
     });
     return data!;
   },
+  pendingComponent: TodosLayoutPending,
+  pendingMs: 200,
+  pendingMinMs: 300,
   component: TodosLayout,
 });
+
+function TodosLayoutPending() {
+  return (
+    <MasterDetailLayout
+      list={<TodoListPaneSkeleton />}
+      detail={<div />}
+    />
+  );
+}
 
 function TodosLayout() {
   const data = Route.useLoaderData();

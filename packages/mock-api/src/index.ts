@@ -10,6 +10,10 @@ import stats from "./routes/stats.js";
 const app = new OpenAPIHono();
 
 app.use("/*", cors());
+app.use("/*", async (_c, next) => {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  await next();
+});
 
 app.route("/auth", auth);
 app.route("/users", users);

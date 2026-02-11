@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getUsersByUserId } from "@app/api";
 import { UserDetail } from "@/features/users/user-detail";
+import { UserDetailSkeleton } from "@/features/users/user-detail.skeleton";
 
 export const Route = createFileRoute("/_authenticated/users/$userId")({
   loader: async ({ params }) => {
@@ -9,6 +10,9 @@ export const Route = createFileRoute("/_authenticated/users/$userId")({
     });
     return data!;
   },
+  pendingComponent: UserDetailSkeleton,
+  pendingMs: 200,
+  pendingMinMs: 300,
   component: UserDetailPage,
 });
 

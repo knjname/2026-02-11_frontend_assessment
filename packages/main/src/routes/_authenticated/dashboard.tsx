@@ -2,12 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getStats } from "@app/api";
 import { Users, CheckSquare, Clock, Activity } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardSkeleton } from "./-dashboard.skeleton";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   loader: async () => {
     const { data } = await getStats();
     return data!;
   },
+  pendingComponent: DashboardSkeleton,
+  pendingMs: 200,
+  pendingMinMs: 300,
   component: DashboardPage,
 });
 

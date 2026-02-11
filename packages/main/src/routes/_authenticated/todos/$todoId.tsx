@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getTodosByTodoId } from "@app/api";
 import { TodoDetail } from "@/features/todos/todo-detail";
+import { TodoDetailSkeleton } from "@/features/todos/todo-detail.skeleton";
 
 export const Route = createFileRoute("/_authenticated/todos/$todoId")({
   loader: async ({ params }) => {
@@ -9,6 +10,9 @@ export const Route = createFileRoute("/_authenticated/todos/$todoId")({
     });
     return data!;
   },
+  pendingComponent: TodoDetailSkeleton,
+  pendingMs: 200,
+  pendingMinMs: 300,
   component: TodoDetailPage,
 });
 
