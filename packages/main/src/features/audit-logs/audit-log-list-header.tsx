@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import {
   Select,
   SelectContent,
@@ -30,10 +30,11 @@ type AuditLogListHeaderProps = {
 
 export function AuditLogListHeader({ search, total }: AuditLogListHeaderProps) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const updateSearch = (updates: Partial<typeof search>) => {
     navigate({
-      to: "/audit-logs",
+      to: pathname as "/audit-logs",
       search: { ...search, ...updates, page: updates.page ?? 1 },
     });
   };

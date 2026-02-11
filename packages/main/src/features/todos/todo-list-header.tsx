@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import type { Todo } from "@app/api";
 import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -24,10 +24,11 @@ type TodoListHeaderProps = {
 
 export function TodoListHeader({ search, total }: TodoListHeaderProps) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const updateSearch = (updates: Partial<typeof search>) => {
     navigate({
-      to: "/todos",
+      to: pathname as "/todos",
       search: { ...search, ...updates, page: updates.page ?? 1 },
     });
   };

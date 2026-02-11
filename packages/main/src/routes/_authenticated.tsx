@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { getAuthMe } from "@app/api";
 import { authStore, setAuth, clearAuth } from "@/features/auth/auth";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { UserMenu } from "@/components/user-menu";
 
@@ -31,7 +31,8 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthenticatedLayout() {
   return (
     <SidebarProvider className="flex-col">
-      <header className="bg-background relative z-20 flex h-14 shrink-0 items-center border-b px-4">
+      <header className="bg-background relative z-20 flex h-14 shrink-0 items-center gap-2 border-b px-4">
+        <SidebarTrigger className="md:hidden" />
         <span className="text-lg font-bold">ACME Admin</span>
         <div className="flex-1" />
         <UserMenu />

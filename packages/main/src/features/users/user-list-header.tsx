@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,10 +18,11 @@ type UserListHeaderProps = {
 
 export function UserListHeader({ search, total }: UserListHeaderProps) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const updateSearch = (updates: Partial<typeof search>) => {
     navigate({
-      to: "/users",
+      to: pathname as "/users",
       search: { ...search, ...updates, page: updates.page ?? 1 },
     });
   };
