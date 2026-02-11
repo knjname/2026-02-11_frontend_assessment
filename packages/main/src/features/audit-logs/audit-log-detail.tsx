@@ -1,18 +1,7 @@
 import type { AuditLogEntry } from "@app/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-const actionLabels: Record<string, string> = {
-  "user.created": "ユーザー作成",
-  "user.updated": "ユーザー更新",
-  "user.deleted": "ユーザー削除",
-  "todo.created": "ToDo作成",
-  "todo.updated": "ToDo更新",
-  "todo.completed": "ToDo完了",
-  "todo.deleted": "ToDo削除",
-  "auth.login": "ログイン",
-  "auth.logout": "ログアウト",
-};
+import { actionLabels } from "./audit-log-labels";
 
 const targetTypeLabels: Record<string, string> = {
   user: "ユーザー",

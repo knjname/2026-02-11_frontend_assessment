@@ -1,14 +1,27 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { AuditLogListHeader } from "./audit-log-list-header";
 
-export function AuditLogListPaneSkeleton() {
+type AuditLogListPaneSkeletonProps = {
+  search?: {
+    action?: string;
+    targetType?: "user" | "todo" | "session";
+    page?: number;
+  };
+};
+
+export function AuditLogListPaneSkeleton({ search }: AuditLogListPaneSkeletonProps) {
   return (
     <div className="flex h-full flex-col">
-      <div className="space-y-2 border-b p-3">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-8 w-full rounded-md" />
-        <Skeleton className="h-8 w-full rounded-md" />
-      </div>
+      {search ? (
+        <AuditLogListHeader search={search} />
+      ) : (
+        <div className="space-y-2 border-b p-3">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-8 w-full rounded-md" />
+          <Skeleton className="h-8 w-full rounded-md" />
+        </div>
+      )}
       <ScrollArea className="flex-1">
         {Array.from({ length: 10 }).map((_, i) => (
           <div key={i} className="block border-b px-3 py-2.5">

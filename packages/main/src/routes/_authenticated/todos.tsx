@@ -34,7 +34,8 @@ export const Route = createFileRoute("/_authenticated/todos")({
 });
 
 function TodosLayoutPending() {
-  return <MasterDetailLayout list={<TodoListPaneSkeleton />} detail={<div />} />;
+  const search = Route.useSearch();
+  return <MasterDetailLayout list={<TodoListPaneSkeleton search={search} />} detail={<div />} />;
 }
 
 function TodosLayout() {
