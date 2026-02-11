@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreatePetData, CreatePetResponses, ListPetsData, ListPetsResponses, ShowPetByIdData, ShowPetByIdErrors, ShowPetByIdResponses } from './types.gen';
+import type { DeleteTodosByTodoIdData, DeleteTodosByTodoIdErrors, DeleteTodosByTodoIdResponses, DeleteUsersByUserIdData, DeleteUsersByUserIdErrors, DeleteUsersByUserIdResponses, GetAuditLogsByLogIdData, GetAuditLogsByLogIdErrors, GetAuditLogsByLogIdResponses, GetAuditLogsData, GetAuditLogsResponses, GetAuthMeData, GetAuthMeErrors, GetAuthMeResponses, GetStatsData, GetStatsResponses, GetTodosByTodoIdData, GetTodosByTodoIdErrors, GetTodosByTodoIdResponses, GetTodosData, GetTodosResponses, GetUsersByUserIdData, GetUsersByUserIdErrors, GetUsersByUserIdResponses, GetUsersData, GetUsersResponses, PostAuthLoginData, PostAuthLoginErrors, PostAuthLoginResponses, PostAuthLogoutData, PostAuthLogoutResponses, PostTodosData, PostTodosResponses, PostUsersData, PostUsersErrors, PostUsersResponses, PutTodosByTodoIdData, PutTodosByTodoIdErrors, PutTodosByTodoIdResponses, PutUsersByUserIdData, PutUsersByUserIdErrors, PutUsersByUserIdResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -19,23 +19,116 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 /**
- * List all pets
+ * ログイン
  */
-export const listPets = <ThrowOnError extends boolean = false>(options?: Options<ListPetsData, ThrowOnError>) => (options?.client ?? client).get<ListPetsResponses, unknown, ThrowOnError>({ url: '/pets', ...options });
-
-/**
- * Create a pet
- */
-export const createPet = <ThrowOnError extends boolean = false>(options: Options<CreatePetData, ThrowOnError>) => (options.client ?? client).post<CreatePetResponses, unknown, ThrowOnError>({
-    url: '/pets',
+export const postAuthLogin = <ThrowOnError extends boolean = false>(options?: Options<PostAuthLoginData, ThrowOnError>) => (options?.client ?? client).post<PostAuthLoginResponses, PostAuthLoginErrors, ThrowOnError>({
+    url: '/auth/login',
     ...options,
     headers: {
         'Content-Type': 'application/json',
-        ...options.headers
+        ...options?.headers
     }
 });
 
 /**
- * Info for a specific pet
+ * ログアウト
  */
-export const showPetById = <ThrowOnError extends boolean = false>(options: Options<ShowPetByIdData, ThrowOnError>) => (options.client ?? client).get<ShowPetByIdResponses, ShowPetByIdErrors, ThrowOnError>({ url: '/pets/{petId}', ...options });
+export const postAuthLogout = <ThrowOnError extends boolean = false>(options?: Options<PostAuthLogoutData, ThrowOnError>) => (options?.client ?? client).post<PostAuthLogoutResponses, unknown, ThrowOnError>({ url: '/auth/logout', ...options });
+
+/**
+ * 現在のユーザー情報取得
+ */
+export const getAuthMe = <ThrowOnError extends boolean = false>(options?: Options<GetAuthMeData, ThrowOnError>) => (options?.client ?? client).get<GetAuthMeResponses, GetAuthMeErrors, ThrowOnError>({ url: '/auth/me', ...options });
+
+/**
+ * ユーザー一覧取得
+ */
+export const getUsers = <ThrowOnError extends boolean = false>(options?: Options<GetUsersData, ThrowOnError>) => (options?.client ?? client).get<GetUsersResponses, unknown, ThrowOnError>({ url: '/users', ...options });
+
+/**
+ * ユーザー作成
+ */
+export const postUsers = <ThrowOnError extends boolean = false>(options?: Options<PostUsersData, ThrowOnError>) => (options?.client ?? client).post<PostUsersResponses, PostUsersErrors, ThrowOnError>({
+    url: '/users',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers
+    }
+});
+
+/**
+ * ユーザー削除
+ */
+export const deleteUsersByUserId = <ThrowOnError extends boolean = false>(options?: Options<DeleteUsersByUserIdData, ThrowOnError>) => (options?.client ?? client).delete<DeleteUsersByUserIdResponses, DeleteUsersByUserIdErrors, ThrowOnError>({ url: '/users/{userId}', ...options });
+
+/**
+ * ユーザー詳細取得
+ */
+export const getUsersByUserId = <ThrowOnError extends boolean = false>(options?: Options<GetUsersByUserIdData, ThrowOnError>) => (options?.client ?? client).get<GetUsersByUserIdResponses, GetUsersByUserIdErrors, ThrowOnError>({ url: '/users/{userId}', ...options });
+
+/**
+ * ユーザー更新
+ */
+export const putUsersByUserId = <ThrowOnError extends boolean = false>(options?: Options<PutUsersByUserIdData, ThrowOnError>) => (options?.client ?? client).put<PutUsersByUserIdResponses, PutUsersByUserIdErrors, ThrowOnError>({
+    url: '/users/{userId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers
+    }
+});
+
+/**
+ * ToDo一覧取得
+ */
+export const getTodos = <ThrowOnError extends boolean = false>(options?: Options<GetTodosData, ThrowOnError>) => (options?.client ?? client).get<GetTodosResponses, unknown, ThrowOnError>({ url: '/todos', ...options });
+
+/**
+ * ToDo作成
+ */
+export const postTodos = <ThrowOnError extends boolean = false>(options?: Options<PostTodosData, ThrowOnError>) => (options?.client ?? client).post<PostTodosResponses, unknown, ThrowOnError>({
+    url: '/todos',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers
+    }
+});
+
+/**
+ * ToDo削除
+ */
+export const deleteTodosByTodoId = <ThrowOnError extends boolean = false>(options?: Options<DeleteTodosByTodoIdData, ThrowOnError>) => (options?.client ?? client).delete<DeleteTodosByTodoIdResponses, DeleteTodosByTodoIdErrors, ThrowOnError>({ url: '/todos/{todoId}', ...options });
+
+/**
+ * ToDo詳細取得
+ */
+export const getTodosByTodoId = <ThrowOnError extends boolean = false>(options?: Options<GetTodosByTodoIdData, ThrowOnError>) => (options?.client ?? client).get<GetTodosByTodoIdResponses, GetTodosByTodoIdErrors, ThrowOnError>({ url: '/todos/{todoId}', ...options });
+
+/**
+ * ToDo更新
+ */
+export const putTodosByTodoId = <ThrowOnError extends boolean = false>(options?: Options<PutTodosByTodoIdData, ThrowOnError>) => (options?.client ?? client).put<PutTodosByTodoIdResponses, PutTodosByTodoIdErrors, ThrowOnError>({
+    url: '/todos/{todoId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers
+    }
+});
+
+/**
+ * 監査ログ一覧取得
+ */
+export const getAuditLogs = <ThrowOnError extends boolean = false>(options?: Options<GetAuditLogsData, ThrowOnError>) => (options?.client ?? client).get<GetAuditLogsResponses, unknown, ThrowOnError>({ url: '/audit-logs', ...options });
+
+/**
+ * 監査ログ詳細取得
+ */
+export const getAuditLogsByLogId = <ThrowOnError extends boolean = false>(options?: Options<GetAuditLogsByLogIdData, ThrowOnError>) => (options?.client ?? client).get<GetAuditLogsByLogIdResponses, GetAuditLogsByLogIdErrors, ThrowOnError>({ url: '/audit-logs/{logId}', ...options });
+
+/**
+ * ダッシュボード統計情報取得
+ */
+export const getStats = <ThrowOnError extends boolean = false>(options?: Options<GetStatsData, ThrowOnError>) => (options?.client ?? client).get<GetStatsResponses, unknown, ThrowOnError>({ url: '/stats', ...options });

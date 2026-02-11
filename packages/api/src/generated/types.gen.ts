@@ -4,15 +4,19 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
-export type Pet = {
-    id: number;
-    name: string;
-    tag?: string;
+export type LoginResponse = {
+    token: string;
+    user: User;
 };
 
-export type NewPet = {
-    name: string;
-    tag?: string;
+export type User = {
+    id: number;
+    username: string;
+    email: string;
+    role: 'admin' | 'member';
+    displayName: string;
+    createdAt: string;
+    updatedAt: string;
 };
 
 export type Error = {
@@ -20,63 +24,478 @@ export type Error = {
     message: string;
 };
 
-export type ListPetsData = {
+export type LoginRequest = {
+    username: string;
+    password: string;
+};
+
+export type NewUser = {
+    username: string;
+    email: string;
+    role: 'admin' | 'member';
+    displayName: string;
+    password: string;
+};
+
+export type UpdateUser = {
+    email?: string;
+    role?: 'admin' | 'member';
+    displayName?: string;
+};
+
+export type Todo = {
+    id: number;
+    title: string;
+    description?: string;
+    assigneeId?: number;
+    status: 'pending' | 'in_progress' | 'done';
+    priority: 'low' | 'medium' | 'high';
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type NewTodo = {
+    title: string;
+    description?: string;
+    assigneeId?: number;
+    priority?: 'low' | 'medium' | 'high';
+};
+
+export type UpdateTodo = {
+    title?: string;
+    description?: string;
+    assigneeId?: number;
+    status?: 'pending' | 'in_progress' | 'done';
+    priority?: 'low' | 'medium' | 'high';
+};
+
+export type AuditLogEntry = {
+    id: number;
+    timestamp: string;
+    action: 'user.created' | 'user.updated' | 'user.deleted' | 'todo.created' | 'todo.updated' | 'todo.completed' | 'todo.deleted' | 'auth.login' | 'auth.logout';
+    actorId: number;
+    actorName: string;
+    targetType: 'user' | 'todo' | 'session';
+    targetId: number;
+    details: string;
+};
+
+export type Stats = {
+    users: {
+        total: number;
+        admins: number;
+        members: number;
+    };
+    todos: {
+        total: number;
+        pending: number;
+        inProgress: number;
+        done: number;
+    };
+    recentActivity: Array<{
+        id: number;
+        timestamp: string;
+        action: string;
+        actorName: string;
+        details: string;
+    }>;
+};
+
+export type PostAuthLoginData = {
+    body?: LoginRequest;
+    path?: never;
+    query?: never;
+    url: '/auth/login';
+};
+
+export type PostAuthLoginErrors = {
+    /**
+     * 認証失敗
+     */
+    401: Error;
+};
+
+export type PostAuthLoginError = PostAuthLoginErrors[keyof PostAuthLoginErrors];
+
+export type PostAuthLoginResponses = {
+    /**
+     * ログイン成功
+     */
+    200: LoginResponse;
+};
+
+export type PostAuthLoginResponse = PostAuthLoginResponses[keyof PostAuthLoginResponses];
+
+export type PostAuthLogoutData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/logout';
+};
+
+export type PostAuthLogoutResponses = {
+    /**
+     * ログアウト成功
+     */
+    200: {
+        message: string;
+    };
+};
+
+export type PostAuthLogoutResponse = PostAuthLogoutResponses[keyof PostAuthLogoutResponses];
+
+export type GetAuthMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/me';
+};
+
+export type GetAuthMeErrors = {
+    /**
+     * 未認証
+     */
+    401: Error;
+};
+
+export type GetAuthMeError = GetAuthMeErrors[keyof GetAuthMeErrors];
+
+export type GetAuthMeResponses = {
+    /**
+     * 現在のユーザー情報
+     */
+    200: User;
+};
+
+export type GetAuthMeResponse = GetAuthMeResponses[keyof GetAuthMeResponses];
+
+export type GetUsersData = {
     body?: never;
     path?: never;
     query?: {
-        limit?: number;
+        page?: number;
+        pageSize?: number;
+        q?: string;
+        role?: 'admin' | 'member';
     };
-    url: '/pets';
+    url: '/users';
 };
 
-export type ListPetsResponses = {
+export type GetUsersResponses = {
     /**
-     * A list of pets
+     * ユーザー一覧
      */
-    200: Array<Pet>;
+    200: {
+        items: Array<User>;
+        total: number;
+        page: number;
+        pageSize: number;
+    };
 };
 
-export type ListPetsResponse = ListPetsResponses[keyof ListPetsResponses];
+export type GetUsersResponse = GetUsersResponses[keyof GetUsersResponses];
 
-export type CreatePetData = {
-    body: NewPet;
+export type PostUsersData = {
+    body?: NewUser;
     path?: never;
     query?: never;
-    url: '/pets';
+    url: '/users';
 };
 
-export type CreatePetResponses = {
+export type PostUsersErrors = {
     /**
-     * The created pet
+     * ユーザー名が重複
      */
-    201: Pet;
+    409: Error;
 };
 
-export type CreatePetResponse = CreatePetResponses[keyof CreatePetResponses];
+export type PostUsersError = PostUsersErrors[keyof PostUsersErrors];
 
-export type ShowPetByIdData = {
+export type PostUsersResponses = {
+    /**
+     * 作成されたユーザー
+     */
+    201: User;
+};
+
+export type PostUsersResponse = PostUsersResponses[keyof PostUsersResponses];
+
+export type DeleteUsersByUserIdData = {
     body?: never;
-    path: {
-        petId: number;
+    path?: {
+        userId?: number;
     };
     query?: never;
-    url: '/pets/{petId}';
+    url: '/users/{userId}';
 };
 
-export type ShowPetByIdErrors = {
+export type DeleteUsersByUserIdErrors = {
     /**
-     * Pet not found
+     * ユーザーが見つかりません
      */
     404: Error;
 };
 
-export type ShowPetByIdError = ShowPetByIdErrors[keyof ShowPetByIdErrors];
+export type DeleteUsersByUserIdError = DeleteUsersByUserIdErrors[keyof DeleteUsersByUserIdErrors];
 
-export type ShowPetByIdResponses = {
+export type DeleteUsersByUserIdResponses = {
     /**
-     * Expected response to a valid request
+     * 削除成功
      */
-    200: Pet;
+    200: {
+        message: string;
+    };
 };
 
-export type ShowPetByIdResponse = ShowPetByIdResponses[keyof ShowPetByIdResponses];
+export type DeleteUsersByUserIdResponse = DeleteUsersByUserIdResponses[keyof DeleteUsersByUserIdResponses];
+
+export type GetUsersByUserIdData = {
+    body?: never;
+    path?: {
+        userId?: number;
+    };
+    query?: never;
+    url: '/users/{userId}';
+};
+
+export type GetUsersByUserIdErrors = {
+    /**
+     * ユーザーが見つかりません
+     */
+    404: Error;
+};
+
+export type GetUsersByUserIdError = GetUsersByUserIdErrors[keyof GetUsersByUserIdErrors];
+
+export type GetUsersByUserIdResponses = {
+    /**
+     * ユーザー詳細
+     */
+    200: User;
+};
+
+export type GetUsersByUserIdResponse = GetUsersByUserIdResponses[keyof GetUsersByUserIdResponses];
+
+export type PutUsersByUserIdData = {
+    body?: UpdateUser;
+    path?: {
+        userId?: number;
+    };
+    query?: never;
+    url: '/users/{userId}';
+};
+
+export type PutUsersByUserIdErrors = {
+    /**
+     * ユーザーが見つかりません
+     */
+    404: Error;
+};
+
+export type PutUsersByUserIdError = PutUsersByUserIdErrors[keyof PutUsersByUserIdErrors];
+
+export type PutUsersByUserIdResponses = {
+    /**
+     * 更新されたユーザー
+     */
+    200: User;
+};
+
+export type PutUsersByUserIdResponse = PutUsersByUserIdResponses[keyof PutUsersByUserIdResponses];
+
+export type GetTodosData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        pageSize?: number;
+        q?: string;
+        status?: 'pending' | 'in_progress' | 'done';
+        priority?: 'low' | 'medium' | 'high';
+        assigneeId?: number;
+    };
+    url: '/todos';
+};
+
+export type GetTodosResponses = {
+    /**
+     * ToDo一覧
+     */
+    200: {
+        items: Array<Todo>;
+        total: number;
+        page: number;
+        pageSize: number;
+    };
+};
+
+export type GetTodosResponse = GetTodosResponses[keyof GetTodosResponses];
+
+export type PostTodosData = {
+    body?: NewTodo;
+    path?: never;
+    query?: never;
+    url: '/todos';
+};
+
+export type PostTodosResponses = {
+    /**
+     * 作成されたToDo
+     */
+    201: Todo;
+};
+
+export type PostTodosResponse = PostTodosResponses[keyof PostTodosResponses];
+
+export type DeleteTodosByTodoIdData = {
+    body?: never;
+    path?: {
+        todoId?: number;
+    };
+    query?: never;
+    url: '/todos/{todoId}';
+};
+
+export type DeleteTodosByTodoIdErrors = {
+    /**
+     * ToDoが見つかりません
+     */
+    404: Error;
+};
+
+export type DeleteTodosByTodoIdError = DeleteTodosByTodoIdErrors[keyof DeleteTodosByTodoIdErrors];
+
+export type DeleteTodosByTodoIdResponses = {
+    /**
+     * 削除成功
+     */
+    200: {
+        message: string;
+    };
+};
+
+export type DeleteTodosByTodoIdResponse = DeleteTodosByTodoIdResponses[keyof DeleteTodosByTodoIdResponses];
+
+export type GetTodosByTodoIdData = {
+    body?: never;
+    path?: {
+        todoId?: number;
+    };
+    query?: never;
+    url: '/todos/{todoId}';
+};
+
+export type GetTodosByTodoIdErrors = {
+    /**
+     * ToDoが見つかりません
+     */
+    404: Error;
+};
+
+export type GetTodosByTodoIdError = GetTodosByTodoIdErrors[keyof GetTodosByTodoIdErrors];
+
+export type GetTodosByTodoIdResponses = {
+    /**
+     * ToDo詳細
+     */
+    200: Todo;
+};
+
+export type GetTodosByTodoIdResponse = GetTodosByTodoIdResponses[keyof GetTodosByTodoIdResponses];
+
+export type PutTodosByTodoIdData = {
+    body?: UpdateTodo;
+    path?: {
+        todoId?: number;
+    };
+    query?: never;
+    url: '/todos/{todoId}';
+};
+
+export type PutTodosByTodoIdErrors = {
+    /**
+     * ToDoが見つかりません
+     */
+    404: Error;
+};
+
+export type PutTodosByTodoIdError = PutTodosByTodoIdErrors[keyof PutTodosByTodoIdErrors];
+
+export type PutTodosByTodoIdResponses = {
+    /**
+     * 更新されたToDo
+     */
+    200: Todo;
+};
+
+export type PutTodosByTodoIdResponse = PutTodosByTodoIdResponses[keyof PutTodosByTodoIdResponses];
+
+export type GetAuditLogsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        pageSize?: number;
+        action?: 'user.created' | 'user.updated' | 'user.deleted' | 'todo.created' | 'todo.updated' | 'todo.completed' | 'todo.deleted' | 'auth.login' | 'auth.logout';
+        actorId?: number;
+        targetType?: 'user' | 'todo' | 'session';
+    };
+    url: '/audit-logs';
+};
+
+export type GetAuditLogsResponses = {
+    /**
+     * 監査ログ一覧
+     */
+    200: {
+        items: Array<AuditLogEntry>;
+        total: number;
+        page: number;
+        pageSize: number;
+    };
+};
+
+export type GetAuditLogsResponse = GetAuditLogsResponses[keyof GetAuditLogsResponses];
+
+export type GetAuditLogsByLogIdData = {
+    body?: never;
+    path?: {
+        logId?: number;
+    };
+    query?: never;
+    url: '/audit-logs/{logId}';
+};
+
+export type GetAuditLogsByLogIdErrors = {
+    /**
+     * ログが見つかりません
+     */
+    404: Error;
+};
+
+export type GetAuditLogsByLogIdError = GetAuditLogsByLogIdErrors[keyof GetAuditLogsByLogIdErrors];
+
+export type GetAuditLogsByLogIdResponses = {
+    /**
+     * 監査ログ詳細
+     */
+    200: AuditLogEntry;
+};
+
+export type GetAuditLogsByLogIdResponse = GetAuditLogsByLogIdResponses[keyof GetAuditLogsByLogIdResponses];
+
+export type GetStatsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/stats';
+};
+
+export type GetStatsResponses = {
+    /**
+     * 統計情報
+     */
+    200: Stats;
+};
+
+export type GetStatsResponse = GetStatsResponses[keyof GetStatsResponses];

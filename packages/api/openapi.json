@@ -1,0 +1,665 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Admin API", "version": "1.0.0", "description": "B2B管理画面用モックAPI" },
+  "components": {
+    "schemas": {
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string" },
+          "user": { "$ref": "#/components/schemas/User" }
+        },
+        "required": ["token", "user"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "username": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "role": { "type": "string", "enum": ["admin", "member"] },
+          "displayName": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "username", "email", "role", "displayName", "createdAt", "updatedAt"]
+      },
+      "Error": {
+        "type": "object",
+        "properties": { "code": { "type": "number" }, "message": { "type": "string" } },
+        "required": ["code", "message"]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string", "minLength": 1 },
+          "password": { "type": "string", "minLength": 1 }
+        },
+        "required": ["username", "password"]
+      },
+      "NewUser": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string", "minLength": 1 },
+          "email": { "type": "string", "format": "email" },
+          "role": { "type": "string", "enum": ["admin", "member"] },
+          "displayName": { "type": "string", "minLength": 1 },
+          "password": { "type": "string", "minLength": 4 }
+        },
+        "required": ["username", "email", "role", "displayName", "password"]
+      },
+      "UpdateUser": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "role": { "type": "string", "enum": ["admin", "member"] },
+          "displayName": { "type": "string", "minLength": 1 }
+        }
+      },
+      "Todo": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "assigneeId": { "type": "number" },
+          "status": { "type": "string", "enum": ["pending", "in_progress", "done"] },
+          "priority": { "type": "string", "enum": ["low", "medium", "high"] },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "title", "status", "priority", "createdAt", "updatedAt"]
+      },
+      "NewTodo": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" },
+          "assigneeId": { "type": "number" },
+          "priority": { "type": "string", "enum": ["low", "medium", "high"], "default": "medium" }
+        },
+        "required": ["title"]
+      },
+      "UpdateTodo": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" },
+          "assigneeId": { "type": "number", "nullable": true },
+          "status": { "type": "string", "enum": ["pending", "in_progress", "done"] },
+          "priority": { "type": "string", "enum": ["low", "medium", "high"] }
+        }
+      },
+      "AuditLogEntry": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "action": {
+            "type": "string",
+            "enum": [
+              "user.created",
+              "user.updated",
+              "user.deleted",
+              "todo.created",
+              "todo.updated",
+              "todo.completed",
+              "todo.deleted",
+              "auth.login",
+              "auth.logout"
+            ]
+          },
+          "actorId": { "type": "number" },
+          "actorName": { "type": "string" },
+          "targetType": { "type": "string", "enum": ["user", "todo", "session"] },
+          "targetId": { "type": "number" },
+          "details": { "type": "string" }
+        },
+        "required": [
+          "id",
+          "timestamp",
+          "action",
+          "actorId",
+          "actorName",
+          "targetType",
+          "targetId",
+          "details"
+        ]
+      },
+      "Stats": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "object",
+            "properties": {
+              "total": { "type": "number" },
+              "admins": { "type": "number" },
+              "members": { "type": "number" }
+            },
+            "required": ["total", "admins", "members"]
+          },
+          "todos": {
+            "type": "object",
+            "properties": {
+              "total": { "type": "number" },
+              "pending": { "type": "number" },
+              "inProgress": { "type": "number" },
+              "done": { "type": "number" }
+            },
+            "required": ["total", "pending", "inProgress", "done"]
+          },
+          "recentActivity": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "number" },
+                "timestamp": { "type": "string" },
+                "action": { "type": "string" },
+                "actorName": { "type": "string" },
+                "details": { "type": "string" }
+              },
+              "required": ["id", "timestamp", "action", "actorName", "details"]
+            }
+          }
+        },
+        "required": ["users", "todos", "recentActivity"]
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "ログイン",
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ログイン成功",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/LoginResponse" } }
+            }
+          },
+          "401": {
+            "description": "認証失敗",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "ログアウト",
+        "responses": {
+          "200": {
+            "description": "ログアウト成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "message": { "type": "string" } },
+                  "required": ["message"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "現在のユーザー情報取得",
+        "responses": {
+          "200": {
+            "description": "現在のユーザー情報",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } }
+          },
+          "401": {
+            "description": "未認証",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "ユーザー一覧取得",
+        "parameters": [
+          {
+            "schema": { "type": "integer", "minimum": 0, "exclusiveMinimum": true, "default": 1 },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "integer", "minimum": 0, "exclusiveMinimum": true, "default": 20 },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          { "schema": { "type": "string" }, "required": false, "name": "q", "in": "query" },
+          {
+            "schema": { "type": "string", "enum": ["admin", "member"] },
+            "required": false,
+            "name": "role",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ユーザー一覧",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": { "type": "array", "items": { "$ref": "#/components/schemas/User" } },
+                    "total": { "type": "number" },
+                    "page": { "type": "number" },
+                    "pageSize": { "type": "number" }
+                  },
+                  "required": ["items", "total", "page", "pageSize"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Users"],
+        "summary": "ユーザー作成",
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/NewUser" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "作成されたユーザー",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } }
+          },
+          "409": {
+            "description": "ユーザー名が重複",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userId}": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "ユーザー詳細取得",
+        "parameters": [
+          {
+            "schema": { "type": "number", "nullable": true },
+            "required": false,
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ユーザー詳細",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } }
+          },
+          "404": {
+            "description": "ユーザーが見つかりません",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Users"],
+        "summary": "ユーザー更新",
+        "parameters": [
+          {
+            "schema": { "type": "number", "nullable": true },
+            "required": false,
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUser" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "更新されたユーザー",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } }
+          },
+          "404": {
+            "description": "ユーザーが見つかりません",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Users"],
+        "summary": "ユーザー削除",
+        "parameters": [
+          {
+            "schema": { "type": "number", "nullable": true },
+            "required": false,
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "削除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "message": { "type": "string" } },
+                  "required": ["message"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ユーザーが見つかりません",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/todos": {
+      "get": {
+        "tags": ["Todos"],
+        "summary": "ToDo一覧取得",
+        "parameters": [
+          {
+            "schema": { "type": "integer", "minimum": 0, "exclusiveMinimum": true, "default": 1 },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "integer", "minimum": 0, "exclusiveMinimum": true, "default": 20 },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          { "schema": { "type": "string" }, "required": false, "name": "q", "in": "query" },
+          {
+            "schema": { "type": "string", "enum": ["pending", "in_progress", "done"] },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "string", "enum": ["low", "medium", "high"] },
+            "required": false,
+            "name": "priority",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "number", "nullable": true },
+            "required": false,
+            "name": "assigneeId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ToDo一覧",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": { "type": "array", "items": { "$ref": "#/components/schemas/Todo" } },
+                    "total": { "type": "number" },
+                    "page": { "type": "number" },
+                    "pageSize": { "type": "number" }
+                  },
+                  "required": ["items", "total", "page", "pageSize"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Todos"],
+        "summary": "ToDo作成",
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/NewTodo" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "作成されたToDo",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Todo" } } }
+          }
+        }
+      }
+    },
+    "/todos/{todoId}": {
+      "get": {
+        "tags": ["Todos"],
+        "summary": "ToDo詳細取得",
+        "parameters": [
+          {
+            "schema": { "type": "number", "nullable": true },
+            "required": false,
+            "name": "todoId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ToDo詳細",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Todo" } } }
+          },
+          "404": {
+            "description": "ToDoが見つかりません",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Todos"],
+        "summary": "ToDo更新",
+        "parameters": [
+          {
+            "schema": { "type": "number", "nullable": true },
+            "required": false,
+            "name": "todoId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UpdateTodo" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "更新されたToDo",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Todo" } } }
+          },
+          "404": {
+            "description": "ToDoが見つかりません",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Todos"],
+        "summary": "ToDo削除",
+        "parameters": [
+          {
+            "schema": { "type": "number", "nullable": true },
+            "required": false,
+            "name": "todoId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "削除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "message": { "type": "string" } },
+                  "required": ["message"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ToDoが見つかりません",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/audit-logs": {
+      "get": {
+        "tags": ["AuditLogs"],
+        "summary": "監査ログ一覧取得",
+        "parameters": [
+          {
+            "schema": { "type": "integer", "minimum": 0, "exclusiveMinimum": true, "default": 1 },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "integer", "minimum": 0, "exclusiveMinimum": true, "default": 20 },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user.created",
+                "user.updated",
+                "user.deleted",
+                "todo.created",
+                "todo.updated",
+                "todo.completed",
+                "todo.deleted",
+                "auth.login",
+                "auth.logout"
+              ]
+            },
+            "required": false,
+            "name": "action",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "number", "nullable": true },
+            "required": false,
+            "name": "actorId",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "string", "enum": ["user", "todo", "session"] },
+            "required": false,
+            "name": "targetType",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "監査ログ一覧",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/AuditLogEntry" }
+                    },
+                    "total": { "type": "number" },
+                    "page": { "type": "number" },
+                    "pageSize": { "type": "number" }
+                  },
+                  "required": ["items", "total", "page", "pageSize"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/audit-logs/{logId}": {
+      "get": {
+        "tags": ["AuditLogs"],
+        "summary": "監査ログ詳細取得",
+        "parameters": [
+          {
+            "schema": { "type": "number", "nullable": true },
+            "required": false,
+            "name": "logId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "監査ログ詳細",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AuditLogEntry" } }
+            }
+          },
+          "404": {
+            "description": "ログが見つかりません",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/stats": {
+      "get": {
+        "tags": ["Stats"],
+        "summary": "ダッシュボード統計情報取得",
+        "responses": {
+          "200": {
+            "description": "統計情報",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Stats" } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

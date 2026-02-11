@@ -1,23 +1,30 @@
 import { serve } from "@hono/node-server";
-import { Hono } from "hono";
-import { readFileSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-import { load } from "js-yaml";
-import pets from "./routes/pets.js";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import { cors } from "hono/cors";
+import auth from "./routes/auth.js";
+import users from "./routes/users.js";
+import todos from "./routes/todos.js";
+import auditLogs from "./routes/audit-logs.js";
+import stats from "./routes/stats.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const app = new OpenAPIHono();
 
-const app = new Hono();
+app.use("/*", cors());
 
-app.get("/openapi.json", (c) => {
-  const yamlPath = resolve(__dirname, "../openapi/petstore.yaml");
-  const yamlContent = readFileSync(yamlPath, "utf-8");
-  const doc = load(yamlContent);
-  return c.json(doc);
+app.route("/auth", auth);
+app.route("/users", users);
+app.route("/todos", todos);
+app.route("/audit-logs", auditLogs);
+app.route("/stats", stats);
+
+app.doc("/openapi.json", {
+  openapi: "3.1.0",
+  info: {
+    title: "Admin API",
+    version: "1.0.0",
+    description: "B2B管理画面用モックAPI",
+  },
 });
-
-app.route("/pets", pets);
 
 serve({ fetch: app.fetch, port: 3000 }, (info) => {
   console.log(`Mock API server running at http://localhost:${info.port}`);

@@ -2,7 +2,7 @@
   "name": "@app/root",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter @app/main dev",
+    "dev": "pnpm --filter @app/main --filter @app/mock-api dev",
     "build": "pnpm --filter @app/main build",
     "test": "pnpm --filter @app/main test",
     "format": "oxfmt .",

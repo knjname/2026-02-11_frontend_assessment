@@ -10,7 +10,8 @@
     }
   },
   "scripts": {
-    "generate": "openapi-ts"
+    "fetch-spec": "node scripts/fetch-spec.mjs",
+    "generate": "pnpm fetch-spec && openapi-ts"
   },
   "dependencies": {
     "@hey-api/client-fetch": "^0.13"
