@@ -1,7 +1,7 @@
 import { Outlet, createRootRoute } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import "@/lib/api-client";
+import "@/features/auth/api-client";
 
 export const Route = createRootRoute({
   component: RootComponent,

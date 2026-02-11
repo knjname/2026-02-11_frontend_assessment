@@ -1,5 +1,5 @@
 import { client } from "@app/api";
-import { authStore } from "@/stores/auth";
+import { authStore } from "@/features/auth/auth";
 
 client.setConfig({ baseUrl: "/api" });
 

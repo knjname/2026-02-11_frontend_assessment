@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useSnapshot } from "valtio";
 import { LogOut, User } from "lucide-react";
 import { postAuthLogout } from "@app/api";
-import { authStore, clearAuth } from "@/stores/auth";
+import { authStore, clearAuth } from "@/features/auth/auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
