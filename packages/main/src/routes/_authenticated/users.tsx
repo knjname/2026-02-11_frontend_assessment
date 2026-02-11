@@ -27,12 +27,7 @@ export const Route = createFileRoute("/_authenticated/users")({
 });
 
 function UsersLayoutPending() {
-  return (
-    <MasterDetailLayout
-      list={<UserListPaneSkeleton />}
-      detail={<div />}
-    />
-  );
+  return <MasterDetailLayout list={<UserListPaneSkeleton />} detail={<div />} />;
 }
 
 function UsersLayout() {

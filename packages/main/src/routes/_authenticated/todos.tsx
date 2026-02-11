@@ -34,12 +34,7 @@ export const Route = createFileRoute("/_authenticated/todos")({
 });
 
 function TodosLayoutPending() {
-  return (
-    <MasterDetailLayout
-      list={<TodoListPaneSkeleton />}
-      detail={<div />}
-    />
-  );
+  return <MasterDetailLayout list={<TodoListPaneSkeleton />} detail={<div />} />;
 }
 
 function TodosLayout() {

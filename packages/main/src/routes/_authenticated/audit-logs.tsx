@@ -33,12 +33,7 @@ export const Route = createFileRoute("/_authenticated/audit-logs")({
 });
 
 function AuditLogsLayoutPending() {
-  return (
-    <MasterDetailLayout
-      list={<AuditLogListPaneSkeleton />}
-      detail={<div />}
-    />
-  );
+  return <MasterDetailLayout list={<AuditLogListPaneSkeleton />} detail={<div />} />;
 }
 
 function AuditLogsLayout() {

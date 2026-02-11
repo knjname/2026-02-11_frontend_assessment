@@ -27,23 +27,25 @@ features/users/
 
 ### 形状の使い分け
 
-| 要素の種類 | Skeleton の className |
-|---|---|
-| テキスト行 | `h-4 w-XX rounded-md`（デフォルト） |
-| アバター・アイコン（円形） | `size-8 rounded-full` |
-| ボタン・入力フィールド | `h-8 w-XX rounded-md` or `h-9 w-XX rounded-md` |
-| バッジ | `h-4 w-XX rounded-md` |
+| 要素の種類                 | Skeleton の className                          |
+| -------------------------- | ---------------------------------------------- |
+| テキスト行                 | `h-4 w-XX rounded-md`（デフォルト）            |
+| アバター・アイコン（円形） | `size-8 rounded-full`                          |
+| ボタン・入力フィールド     | `h-8 w-XX rounded-md` or `h-9 w-XX rounded-md` |
+| バッジ                     | `h-4 w-XX rounded-md`                          |
 
 ### リスト系コンポーネント
 
 ビューポートを埋めるため、8〜10 件分のアイテムを描画する:
 
 ```tsx
-{Array.from({ length: 10 }).map((_, i) => (
-  <div key={i} className="...">
-    <Skeleton className="..." />
-  </div>
-))}
+{
+  Array.from({ length: 10 }).map((_, i) => (
+    <div key={i} className="...">
+      <Skeleton className="..." />
+    </div>
+  ));
+}
 ```
 
 ## TanStack Router との統合
@@ -52,9 +54,11 @@ features/users/
 
 ```tsx
 export const Route = createFileRoute("/_authenticated/example")({
-  loader: async () => { /* ... */ },
+  loader: async () => {
+    /* ... */
+  },
   pendingComponent: ExampleSkeleton,
-  pendingMs: 200,    // 200ms 後にスケルトン表示開始
+  pendingMs: 200, // 200ms 後にスケルトン表示開始
   pendingMinMs: 300, // 最低 300ms スケルトンを表示（チラつき防止）
   component: ExamplePage,
 });
@@ -72,12 +76,7 @@ import { MasterDetailLayout } from "@/components/master-detail-layout";
 import { UserListPaneSkeleton } from "@/features/users/user-list-pane.skeleton";
 
 function UsersLayoutPending() {
-  return (
-    <MasterDetailLayout
-      list={<UserListPaneSkeleton />}
-      detail={<div />}
-    />
-  );
+  return <MasterDetailLayout list={<UserListPaneSkeleton />} detail={<div />} />;
 }
 ```
 
@@ -109,7 +108,9 @@ function UserList({ loading }: { loading: boolean }) {
 // NG: コンポーネント内で直接 API を呼ばない
 function UserList() {
   const [data, setData] = useState(null);
-  useEffect(() => { fetchUsers().then(setData); }, []);
+  useEffect(() => {
+    fetchUsers().then(setData);
+  }, []);
   if (!data) return <Skeleton />;
   // ...
 }
