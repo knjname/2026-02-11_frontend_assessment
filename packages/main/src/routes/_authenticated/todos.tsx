@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useParams } from "@tanstack/react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { getTodos } from "@app/api";
@@ -15,6 +15,7 @@ const todosSearchSchema = z.object({
 });
 
 function TodosLayout() {
+  const { todoId } = useParams({ strict: false }) as { todoId?: string };
   const search = Route.useSearch();
   const { data } = useQuery({
     queryKey: [
@@ -42,7 +43,7 @@ function TodosLayout() {
       list={
         <div className="flex h-full flex-col">
           <TodoListHeader search={search} total={data?.total} />
-          {data ? <TodoListBody todos={data.items} search={search} /> : <TodoListBodySkeleton />}
+          {data ? <TodoListBody todos={data.items} search={search} selectedId={todoId ? Number(todoId) : undefined} /> : <TodoListBodySkeleton />}
         </div>
       }
       detail={data ? <Outlet /> : <div />}

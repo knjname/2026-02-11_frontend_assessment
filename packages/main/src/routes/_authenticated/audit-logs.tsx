@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useParams } from "@tanstack/react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { getAuditLogs } from "@app/api";
@@ -26,6 +26,7 @@ const auditLogsSearchSchema = z.object({
 });
 
 function AuditLogsLayout() {
+  const { logId } = useParams({ strict: false }) as { logId?: string };
   const search = Route.useSearch();
   const { data } = useQuery({
     queryKey: [
@@ -53,7 +54,7 @@ function AuditLogsLayout() {
         <div className="flex h-full flex-col">
           <AuditLogListHeader search={search} total={data?.total} />
           {data ? (
-            <AuditLogListBody logs={data.items} search={search} />
+            <AuditLogListBody logs={data.items} search={search} selectedId={logId ? Number(logId) : undefined} />
           ) : (
             <AuditLogListBodySkeleton />
           )}

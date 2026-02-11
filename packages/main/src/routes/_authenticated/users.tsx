@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useParams } from "@tanstack/react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { getUsers } from "@app/api";
@@ -14,6 +14,7 @@ const usersSearchSchema = z.object({
 });
 
 function UsersLayout() {
+  const { userId } = useParams({ strict: false }) as { userId?: string };
   const search = Route.useSearch();
   const { data } = useQuery({
     queryKey: ["users", { q: search.q, role: search.role, page: search.page }],
@@ -32,7 +33,7 @@ function UsersLayout() {
       list={
         <div className="flex h-full flex-col">
           <UserListHeader search={search} total={data?.total} />
-          {data ? <UserListBody users={data.items} search={search} /> : <UserListBodySkeleton />}
+          {data ? <UserListBody users={data.items} search={search} selectedId={userId ? Number(userId) : undefined} /> : <UserListBodySkeleton />}
         </div>
       }
       detail={data ? <Outlet /> : <div />}
