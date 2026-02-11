@@ -1,0 +1,11 @@
+{
+  "name": "@app/root",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @app/main dev",
+    "build": "pnpm --filter @app/main build",
+    "test": "pnpm --filter @app/main test",
+    "generate:api": "pnpm --filter @app/api generate",
+    "mock-api": "pnpm --filter @app/mock-api dev"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/mock-api" },
+    { "path": "packages/api" },
+    { "path": "packages/main/tsconfig.app.json" },
+    { "path": "packages/main/tsconfig.node.json" }
+  ]
+}
