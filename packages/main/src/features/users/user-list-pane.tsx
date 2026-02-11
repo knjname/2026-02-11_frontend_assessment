@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { User } from "@app/api";
 import { Plus, Search } from "lucide-react";
@@ -22,12 +23,18 @@ type Props = {
 
 export function UserListPane({ users, total, search, selectedId }: Props) {
   const navigate = useNavigate();
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const updateSearch = (updates: Partial<typeof search>) => {
     navigate({
       to: "/users",
       search: { ...search, ...updates, page: updates.page ?? 1 },
     });
+  };
+
+  const debouncedUpdateSearch = (updates: Partial<typeof search>) => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => updateSearch(updates), 300);
   };
 
   return (
@@ -49,7 +56,7 @@ export function UserListPane({ users, total, search, selectedId }: Props) {
             placeholder="検索..."
             className="pl-8 h-8 text-sm"
             defaultValue={search.q ?? ""}
-            onChange={(e) => updateSearch({ q: e.target.value || undefined })}
+            onChange={(e) => debouncedUpdateSearch({ q: e.target.value || undefined })}
           />
         </div>
         <Select
