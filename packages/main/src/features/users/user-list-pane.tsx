@@ -3,6 +3,7 @@ import type { User } from "@app/api";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { UserListHeader } from "./user-list-header";
+import { roleLabels } from "./user-labels";
 
 type Props = {
   users: User[];
@@ -37,7 +38,7 @@ export function UserListPane({ users, total, search, selectedId }: Props) {
               variant={user.role === "admin" ? "default" : "secondary"}
               className="text-[10px]"
             >
-              {user.role === "admin" ? "管理者" : "メンバー"}
+              {roleLabels[user.role] ?? user.role}
             </Badge>
           </Link>
         ))}

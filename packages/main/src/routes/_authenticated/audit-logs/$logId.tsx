@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { getAuditLogsByLogId } from "@app/api";
 import { AuditLogDetail } from "@/features/audit-logs/audit-log-detail";
 import { AuditLogDetailSkeleton } from "@/features/audit-logs/audit-log-detail.skeleton";
@@ -8,7 +8,8 @@ export const Route = createFileRoute("/_authenticated/audit-logs/$logId")({
     const { data } = await getAuditLogsByLogId({
       path: { logId: Number(params.logId) },
     });
-    return data!;
+    if (!data) throw notFound();
+    return data;
   },
   pendingComponent: AuditLogDetailSkeleton,
   pendingMs: 200,

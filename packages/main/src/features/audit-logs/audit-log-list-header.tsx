@@ -8,9 +8,20 @@ import {
 } from "@/components/ui/select";
 import { actionLabels } from "./audit-log-labels";
 
+type AuditLogAction =
+  | "user.created"
+  | "user.updated"
+  | "user.deleted"
+  | "todo.created"
+  | "todo.updated"
+  | "todo.completed"
+  | "todo.deleted"
+  | "auth.login"
+  | "auth.logout";
+
 type AuditLogListHeaderProps = {
   search: {
-    action?: string;
+    action?: AuditLogAction;
     targetType?: "user" | "todo" | "session";
     page?: number;
   };
@@ -32,7 +43,9 @@ export function AuditLogListHeader({ search, total }: AuditLogListHeaderProps) {
       <h2 className="text-sm font-semibold">監査ログ{total != null ? ` (${total})` : ""}</h2>
       <Select
         value={search.action ?? "all"}
-        onValueChange={(v) => updateSearch({ action: v === "all" ? undefined : v })}
+        onValueChange={(v) =>
+          updateSearch({ action: v === "all" ? undefined : (v as AuditLogAction) })
+        }
       >
         <SelectTrigger className="h-8 text-sm">
           <SelectValue placeholder="アクション" />

@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { getUsers } from "@app/api";
-import type { User } from "@app/api";
 import { MasterDetailLayout } from "@/components/master-detail-layout";
 import { UserListPane } from "@/features/users/user-list-pane";
 import { UserListPaneSkeleton } from "@/features/users/user-list-pane.skeleton";
@@ -15,19 +14,17 @@ const usersSearchSchema = z.object({
 
 function UsersLayout() {
   const search = Route.useSearch();
-  const [data, setData] = useState<{ items: User[]; total: number } | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    getUsers({
-      query: { q: search.q, role: search.role, page: search.page, pageSize: 20 },
-    }).then(({ data: result }) => {
-      if (!cancelled) setData(result!);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [search.q, search.role, search.page]);
+  const { data } = useQuery({
+    queryKey: ["users", { q: search.q, role: search.role, page: search.page }],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      const { data, error } = await getUsers({
+        query: { q: search.q, role: search.role, page: search.page, pageSize: 20 },
+      });
+      if (error) throw error;
+      return data!;
+    },
+  });
 
   if (!data) {
     return <MasterDetailLayout list={<UserListPaneSkeleton search={search} />} detail={<div />} />;

@@ -1,13 +1,7 @@
 import type { AuditLogEntry } from "@app/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { actionLabels } from "./audit-log-labels";
-
-const targetTypeLabels: Record<string, string> = {
-  user: "ユーザー",
-  todo: "ToDo",
-  session: "セッション",
-};
+import { actionLabels, targetTypeLabels } from "./audit-log-labels";
 
 export function AuditLogDetail({ log }: { log: AuditLogEntry }) {
   return (

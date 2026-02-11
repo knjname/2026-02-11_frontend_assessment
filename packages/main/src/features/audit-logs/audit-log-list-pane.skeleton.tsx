@@ -1,10 +1,11 @@
+import type { AuditLogEntry } from "@app/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AuditLogListHeader } from "./audit-log-list-header";
 
 type AuditLogListPaneSkeletonProps = {
   search?: {
-    action?: string;
+    action?: AuditLogEntry["action"];
     targetType?: "user" | "todo" | "session";
     page?: number;
   };

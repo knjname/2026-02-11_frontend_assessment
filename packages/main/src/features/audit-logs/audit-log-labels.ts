@@ -9,3 +9,9 @@ export const actionLabels: Record<string, string> = {
   "auth.login": "ログイン",
   "auth.logout": "ログアウト",
 };
+
+export const targetTypeLabels: Record<string, string> = {
+  user: "ユーザー",
+  todo: "ToDo",
+  session: "セッション",
+};

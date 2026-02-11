@@ -9,7 +9,7 @@ type Props = {
   logs: AuditLogEntry[];
   total: number;
   search: {
-    action?: string;
+    action?: AuditLogEntry["action"];
     targetType?: "user" | "todo" | "session";
     page?: number;
   };

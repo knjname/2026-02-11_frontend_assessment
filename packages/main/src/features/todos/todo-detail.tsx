@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate, useRouter } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Todo } from "@app/api";
@@ -7,35 +8,20 @@ import { putTodosByTodoId, deleteTodosByTodoId } from "@app/api";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { FormTextField, FormTextareaField, FormSelectField } from "@/components/form-fields";
 import { todoUpdateSchema, type TodoUpdateForm } from "./todo-schemas";
 
 export function TodoDetail({ todo }: { todo: Todo }) {
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const form = useForm<TodoUpdateForm>({
-    resolver: zodResolver(todoUpdateSchema) as never,
+    resolver: zodResolver(todoUpdateSchema),
     defaultValues: {
       title: todo.title,
       description: todo.description ?? "",
@@ -56,7 +42,7 @@ export function TodoDetail({ todo }: { todo: Todo }) {
       return;
     }
     toast.success("ToDoを更新しました");
-    router.invalidate();
+    queryClient.invalidateQueries({ queryKey: ["todos"] });
   };
 
   const handleDelete = async () => {
@@ -70,7 +56,7 @@ export function TodoDetail({ todo }: { todo: Todo }) {
     toast.success("ToDoを削除しました");
     setDeleteOpen(false);
     navigate({ to: "/todos" });
-    router.invalidate();
+    queryClient.invalidateQueries({ queryKey: ["todos"] });
   };
 
   return (
@@ -90,76 +76,28 @@ export function TodoDetail({ todo }: { todo: Todo }) {
           </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>タイトル</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>説明</FormLabel>
-                    <FormControl>
-                      <Textarea rows={3} {...field} value={field.value ?? ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormTextField control={form.control} name="title" label="タイトル" />
+              <FormTextareaField control={form.control} name="description" label="説明" rows={3} />
               <div className="grid grid-cols-2 gap-4">
-                <FormField
+                <FormSelectField
                   control={form.control}
                   name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ステータス</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="pending">未着手</SelectItem>
-                          <SelectItem value="in_progress">進行中</SelectItem>
-                          <SelectItem value="done">完了</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="ステータス"
+                  options={[
+                    { value: "pending", label: "未着手" },
+                    { value: "in_progress", label: "進行中" },
+                    { value: "done", label: "完了" },
+                  ]}
                 />
-                <FormField
+                <FormSelectField
                   control={form.control}
                   name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>優先度</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="high">高</SelectItem>
-                          <SelectItem value="medium">中</SelectItem>
-                          <SelectItem value="low">低</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="優先度"
+                  options={[
+                    { value: "high", label: "高" },
+                    { value: "medium", label: "中" },
+                    { value: "low", label: "低" },
+                  ]}
                 />
               </div>
               <Button type="submit" disabled={form.formState.isSubmitting}>

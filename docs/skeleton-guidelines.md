@@ -50,12 +50,16 @@ features/users/
 
 ## TanStack Router との統合
 
-### ルート定義に `pendingComponent` を追加
+### 詳細ルート: `loader` + `pendingComponent`
+
+詳細ルート（個別リソース表示）ではデータ取得を `loader` で行い、スケルトンは `pendingComponent` で自動切り替えする:
 
 ```tsx
-export const Route = createFileRoute("/_authenticated/example")({
-  loader: async () => {
-    /* ... */
+export const Route = createFileRoute("/_authenticated/example/$id")({
+  loader: async ({ params }) => {
+    const { data } = await getExampleById({ path: { id: Number(params.id) } });
+    if (!data) throw notFound();
+    return data;
   },
   pendingComponent: ExampleSkeleton,
   pendingMs: 200, // 200ms 後にスケルトン表示開始
@@ -66,6 +70,57 @@ export const Route = createFileRoute("/_authenticated/example")({
 
 - `pendingMs: 200` — loader が 200ms 以内に完了すればスケルトンは表示されない
 - `pendingMinMs: 300` — 一度表示されたスケルトンは最低 300ms 表示される
+
+### リストルート: TanStack Query (`useQuery`)
+
+リストルート（フィルター付き一覧）では、`loader` + `pendingComponent` を使うとフィルター変更時にコンポーネント全体が再マウントされ、検索入力のフォーカスが喪失する問題がある。この場合は TanStack Query の `useQuery` を使用する:
+
+```tsx
+import { useQuery } from "@tanstack/react-query";
+
+function ExampleListLayout() {
+  const search = Route.useSearch();
+  const { data } = useQuery({
+    queryKey: ["examples", { q: search.q, page: search.page }],
+    queryFn: async () => {
+      const { data, error } = await getExamples({
+        query: { q: search.q, page: search.page, pageSize: 20 },
+      });
+      if (error) throw error;
+      return data!;
+    },
+  });
+
+  // 初回ロード時のみスケルトン表示
+  if (!data) {
+    return (
+      <MasterDetailLayout list={<ExampleListPaneSkeleton search={search} />} detail={<div />} />
+    );
+  }
+
+  return (
+    <MasterDetailLayout
+      list={<ExampleListPane items={data.items} total={data.total} search={search} />}
+      detail={<Outlet />}
+    />
+  );
+}
+```
+
+**利点:**
+
+- stale-while-revalidate: フィルター変更時に前回データを表示しつつバックグラウンドで更新
+- フォーカス維持: コンポーネントが再マウントされないため入力フォーカスが失われない
+- エラーハンドリング: TanStack Query が自動リトライと `error` state を提供
+- キャッシュ: 同一クエリの再取得を自動キャッシュ
+
+**mutation 後のリフレッシュ:**
+
+```tsx
+const queryClient = useQueryClient();
+// 作成・更新・削除後にリストを再取得
+queryClient.invalidateQueries({ queryKey: ["examples"] });
+```
 
 ### レイアウトルートの場合
 
@@ -84,7 +139,8 @@ function UsersLayoutPending() {
 
 - [ ] `*.skeleton.tsx` ファイルを作成した
 - [ ] 実コンポーネントの DOM 構造をミラーリングした
-- [ ] ルート定義に `pendingComponent`, `pendingMs: 200`, `pendingMinMs: 300` を追加した
+- [ ] 詳細ルートの場合: `pendingComponent`, `pendingMs: 200`, `pendingMinMs: 300` を追加した
+- [ ] リストルートの場合: TanStack Query の `useQuery` でデータ取得し、初回のみスケルトンを表示した
 - [ ] レイアウトルートの場合は `MasterDetailLayout` でラップした
 - [ ] mock-api の遅延環境で表示を確認した
 
@@ -100,12 +156,12 @@ function UserList({ loading }: { loading: boolean }) {
 }
 ```
 
-スケルトンは常に独立コンポーネントとして定義し、TanStack Router の `pendingComponent` で切り替える。
+スケルトンは常に独立コンポーネントとして定義し、ルート側で切り替える。
 
-### コンポーネント内データ取得（禁止）
+### useEffect + useState によるデータ取得（禁止）
 
 ```tsx
-// NG: コンポーネント内で直接 API を呼ばない
+// NG: useEffect + useState で直接 API を呼ばない
 function UserList() {
   const [data, setData] = useState(null);
   useEffect(() => {
@@ -116,4 +172,4 @@ function UserList() {
 }
 ```
 
-データ取得は必ず TanStack Router の `loader` で行い、スケルトンは `pendingComponent` で自動切り替えする。
+データ取得は TanStack Router の `loader`（詳細ルート）または TanStack Query の `useQuery`（リストルート）で行う。

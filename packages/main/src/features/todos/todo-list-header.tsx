@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { Todo } from "@app/api";
 import { Plus, Search } from "lucide-react";
@@ -11,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
 
 type TodoListHeaderProps = {
   search: {
@@ -24,7 +24,6 @@ type TodoListHeaderProps = {
 
 export function TodoListHeader({ search, total }: TodoListHeaderProps) {
   const navigate = useNavigate();
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const updateSearch = (updates: Partial<typeof search>) => {
     navigate({
@@ -33,10 +32,10 @@ export function TodoListHeader({ search, total }: TodoListHeaderProps) {
     });
   };
 
-  const debouncedUpdateSearch = (updates: Partial<typeof search>) => {
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    searchTimerRef.current = setTimeout(() => updateSearch(updates), 300);
-  };
+  const debouncedUpdateSearch = useDebouncedCallback(
+    (updates: Partial<typeof search>) => updateSearch(updates),
+    300,
+  );
 
   return (
     <div className="space-y-2 border-b p-3">

@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
 
 type UserListHeaderProps = {
   search: { q?: string; role?: "admin" | "member"; page?: number };
@@ -18,7 +18,6 @@ type UserListHeaderProps = {
 
 export function UserListHeader({ search, total }: UserListHeaderProps) {
   const navigate = useNavigate();
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const updateSearch = (updates: Partial<typeof search>) => {
     navigate({
@@ -27,10 +26,10 @@ export function UserListHeader({ search, total }: UserListHeaderProps) {
     });
   };
 
-  const debouncedUpdateSearch = (updates: Partial<typeof search>) => {
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    searchTimerRef.current = setTimeout(() => updateSearch(updates), 300);
-  };
+  const debouncedUpdateSearch = useDebouncedCallback(
+    (updates: Partial<typeof search>) => updateSearch(updates),
+    300,
+  );
 
   return (
     <div className="space-y-2 border-b p-3">

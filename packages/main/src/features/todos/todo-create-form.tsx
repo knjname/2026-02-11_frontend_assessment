@@ -1,35 +1,21 @@
-import { useNavigate, useRouter } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { postTodos } from "@app/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormTextField, FormTextareaField, FormSelectField } from "@/components/form-fields";
 import { todoCreateSchema, type TodoCreateForm as TodoCreateFormType } from "./todo-schemas";
 
 export function TodoCreateForm() {
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const form = useForm<TodoCreateFormType>({
-    resolver: zodResolver(todoCreateSchema) as never,
+    resolver: zodResolver(todoCreateSchema),
     defaultValues: {
       title: "",
       description: "",
@@ -45,7 +31,7 @@ export function TodoCreateForm() {
     }
     if (result) {
       toast.success("ToDoを作成しました");
-      router.invalidate();
+      queryClient.invalidateQueries({ queryKey: ["todos"] });
       navigate({ to: "/todos/$todoId", params: { todoId: String(result.id) } });
     }
   };
@@ -59,53 +45,17 @@ export function TodoCreateForm() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>タイトル</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>説明</FormLabel>
-                    <FormControl>
-                      <Textarea rows={3} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
+              <FormTextField control={form.control} name="title" label="タイトル" />
+              <FormTextareaField control={form.control} name="description" label="説明" rows={3} />
+              <FormSelectField
                 control={form.control}
                 name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>優先度</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="high">高</SelectItem>
-                        <SelectItem value="medium">中</SelectItem>
-                        <SelectItem value="low">低</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="優先度"
+                options={[
+                  { value: "high", label: "高" },
+                  { value: "medium", label: "中" },
+                  { value: "low", label: "低" },
+                ]}
               />
               <div className="flex gap-2">
                 <Button type="submit" disabled={form.formState.isSubmitting}>

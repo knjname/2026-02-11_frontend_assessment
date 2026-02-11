@@ -4,7 +4,7 @@ export const todoCreateSchema = z.object({
   title: z.string().min(1, "タイトルを入力してください"),
   description: z.string().optional(),
   assigneeId: z.coerce.number().optional(),
-  priority: z.enum(["low", "medium", "high"]).optional(),
+  priority: z.enum(["low", "medium", "high"]).default("medium"),
 });
 
 export const todoUpdateSchema = z.object({
@@ -15,8 +15,8 @@ export const todoUpdateSchema = z.object({
   priority: z.enum(["low", "medium", "high"]).optional(),
 });
 
-export type TodoCreateForm = z.infer<typeof todoCreateSchema>;
-export type TodoUpdateForm = z.infer<typeof todoUpdateSchema>;
+export type TodoCreateForm = z.input<typeof todoCreateSchema>;
+export type TodoUpdateForm = z.input<typeof todoUpdateSchema>;
 
 export const statusLabels: Record<string, string> = {
   pending: "未着手",
