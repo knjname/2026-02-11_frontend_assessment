@@ -3,8 +3,9 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { getAuditLogs } from "@app/api";
 import { MasterDetailLayout } from "@/components/master-detail-layout";
-import { AuditLogListPane } from "@/features/audit-logs/audit-log-list-pane";
-import { AuditLogListPaneSkeleton } from "@/features/audit-logs/audit-log-list-pane.skeleton";
+import { AuditLogListBody } from "@/features/audit-logs/audit-log-list-pane";
+import { AuditLogListBodySkeleton } from "@/features/audit-logs/audit-log-list-pane.skeleton";
+import { AuditLogListHeader } from "@/features/audit-logs/audit-log-list-header";
 
 const auditLogActions = [
   "user.created",
@@ -46,16 +47,19 @@ function AuditLogsLayout() {
     },
   });
 
-  if (!data) {
-    return (
-      <MasterDetailLayout list={<AuditLogListPaneSkeleton search={search} />} detail={<div />} />
-    );
-  }
-
   return (
     <MasterDetailLayout
-      list={<AuditLogListPane logs={data.items} total={data.total} search={search} />}
-      detail={<Outlet />}
+      list={
+        <div className="flex h-full flex-col">
+          <AuditLogListHeader search={search} total={data?.total} />
+          {data ? (
+            <AuditLogListBody logs={data.items} search={search} />
+          ) : (
+            <AuditLogListBodySkeleton />
+          )}
+        </div>
+      }
+      detail={data ? <Outlet /> : <div />}
     />
   );
 }

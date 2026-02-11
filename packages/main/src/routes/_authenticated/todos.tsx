@@ -3,8 +3,9 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { getTodos } from "@app/api";
 import { MasterDetailLayout } from "@/components/master-detail-layout";
-import { TodoListPane } from "@/features/todos/todo-list-pane";
-import { TodoListPaneSkeleton } from "@/features/todos/todo-list-pane.skeleton";
+import { TodoListBody } from "@/features/todos/todo-list-pane";
+import { TodoListBodySkeleton } from "@/features/todos/todo-list-pane.skeleton";
+import { TodoListHeader } from "@/features/todos/todo-list-header";
 
 const todosSearchSchema = z.object({
   q: z.string().optional(),
@@ -36,14 +37,15 @@ function TodosLayout() {
     },
   });
 
-  if (!data) {
-    return <MasterDetailLayout list={<TodoListPaneSkeleton search={search} />} detail={<div />} />;
-  }
-
   return (
     <MasterDetailLayout
-      list={<TodoListPane todos={data.items} total={data.total} search={search} />}
-      detail={<Outlet />}
+      list={
+        <div className="flex h-full flex-col">
+          <TodoListHeader search={search} total={data?.total} />
+          {data ? <TodoListBody todos={data.items} search={search} /> : <TodoListBodySkeleton />}
+        </div>
+      }
+      detail={data ? <Outlet /> : <div />}
     />
   );
 }

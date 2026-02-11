@@ -3,8 +3,9 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { getUsers } from "@app/api";
 import { MasterDetailLayout } from "@/components/master-detail-layout";
-import { UserListPane } from "@/features/users/user-list-pane";
-import { UserListPaneSkeleton } from "@/features/users/user-list-pane.skeleton";
+import { UserListBody } from "@/features/users/user-list-pane";
+import { UserListBodySkeleton } from "@/features/users/user-list-pane.skeleton";
+import { UserListHeader } from "@/features/users/user-list-header";
 
 const usersSearchSchema = z.object({
   q: z.string().optional(),
@@ -26,14 +27,15 @@ function UsersLayout() {
     },
   });
 
-  if (!data) {
-    return <MasterDetailLayout list={<UserListPaneSkeleton search={search} />} detail={<div />} />;
-  }
-
   return (
     <MasterDetailLayout
-      list={<UserListPane users={data.items} total={data.total} search={search} />}
-      detail={<Outlet />}
+      list={
+        <div className="flex h-full flex-col">
+          <UserListHeader search={search} total={data?.total} />
+          {data ? <UserListBody users={data.items} search={search} /> : <UserListBodySkeleton />}
+        </div>
+      }
+      detail={data ? <Outlet /> : <div />}
     />
   );
 }

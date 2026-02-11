@@ -8,7 +8,7 @@
 
 - ファイル名: `<component-name>.skeleton.tsx`
 - 配置場所: 対応する実コンポーネントと同じディレクトリ
-- export 名: `<ComponentName>Skeleton`
+- export 名: `<ComponentName>Skeleton`（リスト本体の場合は `<Feature>ListBodySkeleton`）
 
 ```
 features/users/
@@ -71,9 +71,9 @@ export const Route = createFileRoute("/_authenticated/example/$id")({
 - `pendingMs: 200` — loader が 200ms 以内に完了すればスケルトンは表示されない
 - `pendingMinMs: 300` — 一度表示されたスケルトンは最低 300ms 表示される
 
-### リストルート: TanStack Query (`useQuery`)
+### リストルート: TanStack Query (`useQuery`) + Header 分離
 
-リストルート（フィルター付き一覧）では、`loader` + `pendingComponent` を使うとフィルター変更時にコンポーネント全体が再マウントされ、検索入力のフォーカスが喪失する問題がある。この場合は TanStack Query の `useQuery` を使用する:
+リストルート（フィルター付き一覧）では、`loader` + `pendingComponent` を使うとフィルター変更時にコンポーネント全体が再マウントされ、検索入力のフォーカスが喪失する問題がある。この場合は TanStack Query の `useQuery` を使用し、**Header（フィルターUI）を条件分岐の外に配置**する:
 
 ```tsx
 import { useQuery } from "@tanstack/react-query";
@@ -91,26 +91,36 @@ function ExampleListLayout() {
     },
   });
 
-  // 初回ロード時のみスケルトン表示
-  if (!data) {
-    return (
-      <MasterDetailLayout list={<ExampleListPaneSkeleton search={search} />} detail={<div />} />
-    );
-  }
-
   return (
     <MasterDetailLayout
-      list={<ExampleListPane items={data.items} total={data.total} search={search} />}
-      detail={<Outlet />}
+      list={
+        <div className="flex h-full flex-col">
+          {/* Header は条件分岐の外 — データの有無に関わらず常にマウント */}
+          <ExampleListHeader search={search} total={data?.total} />
+          {/* リスト本体のみ切り替え */}
+          {data ? (
+            <ExampleListBody items={data.items} search={search} />
+          ) : (
+            <ExampleListBodySkeleton />
+          )}
+        </div>
+      }
+      detail={data ? <Outlet /> : <div />}
     />
   );
 }
 ```
 
+**構造のポイント:**
+
+- **Header は条件分岐の外**: `data` の有無に関わらず常にマウントされるため、フィルター操作中のフォーカスが維持される
+- **ListBody**: ScrollArea + アイテムリストのみ。Header や外側の `div` ラッパーを含まない
+- **ListBodySkeleton**: ScrollArea + スケルトン行のみ。Header のスケルトンは不要（実 Header が常に表示されるため）
+
 **利点:**
 
-- stale-while-revalidate: フィルター変更時に前回データを表示しつつバックグラウンドで更新
-- フォーカス維持: コンポーネントが再マウントされないため入力フォーカスが失われない
+- フォーカス維持: Header が再マウントされないため、データ取得の実装に関わらず入力フォーカスが失われない
+- stale-while-revalidate: `keepPreviousData` との併用で前回データを表示しつつバックグラウンドで更新
 - エラーハンドリング: TanStack Query が自動リトライと `error` state を提供
 - キャッシュ: 同一クエリの再取得を自動キャッシュ
 
@@ -128,10 +138,10 @@ queryClient.invalidateQueries({ queryKey: ["examples"] });
 
 ```tsx
 import { MasterDetailLayout } from "@/components/master-detail-layout";
-import { UserListPaneSkeleton } from "@/features/users/user-list-pane.skeleton";
+import { UserListBodySkeleton } from "@/features/users/user-list-pane.skeleton";
 
 function UsersLayoutPending() {
-  return <MasterDetailLayout list={<UserListPaneSkeleton />} detail={<div />} />;
+  return <MasterDetailLayout list={<UserListBodySkeleton />} detail={<div />} />;
 }
 ```
 
@@ -140,7 +150,7 @@ function UsersLayoutPending() {
 - [ ] `*.skeleton.tsx` ファイルを作成した
 - [ ] 実コンポーネントの DOM 構造をミラーリングした
 - [ ] 詳細ルートの場合: `pendingComponent`, `pendingMs: 200`, `pendingMinMs: 300` を追加した
-- [ ] リストルートの場合: TanStack Query の `useQuery` でデータ取得し、初回のみスケルトンを表示した
+- [ ] リストルートの場合: Header を条件分岐の外に配置し、リスト本体のみスケルトンと切り替えた
 - [ ] レイアウトルートの場合は `MasterDetailLayout` でラップした
 - [ ] mock-api の遅延環境で表示を確認した
 
