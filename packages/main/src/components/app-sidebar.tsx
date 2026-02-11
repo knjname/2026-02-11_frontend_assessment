@@ -6,7 +6,6 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -36,9 +35,6 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b px-4 py-3">
-        <span className="text-lg font-bold">ACME Admin</span>
-      </SidebarHeader>
       <SidebarContent>
         {navGroups.map((group) => (
           <SidebarGroup key={group.label || "top"}>

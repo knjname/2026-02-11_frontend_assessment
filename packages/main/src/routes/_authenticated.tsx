@@ -1,8 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { getAuthMe } from "@app/api";
 import { authStore, setAuth, clearAuth } from "@/features/auth/auth";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { UserMenu } from "@/components/user-menu";
 
@@ -31,22 +30,23 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mx-2 h-4" />
-          <div className="flex-1" />
-          <UserMenu />
-        </header>
-        <main className="flex-1 overflow-auto">
-          <Outlet />
-        </main>
-        <footer className="border-t px-4 py-2 text-center text-xs text-muted-foreground">
-          &copy; 2026 ACME Corporation. All rights reserved.
-        </footer>
-      </SidebarInset>
+    <SidebarProvider className="flex-col">
+      <header className="bg-background relative z-20 flex h-14 shrink-0 items-center border-b px-4">
+        <span className="text-lg font-bold">ACME Admin</span>
+        <div className="flex-1" />
+        <UserMenu />
+      </header>
+      <div className="flex min-h-0 flex-1">
+        <AppSidebar />
+        <SidebarInset>
+          <main className="flex-1 overflow-auto">
+            <Outlet />
+          </main>
+          <footer className="border-t px-4 py-2 text-center text-xs text-muted-foreground">
+            &copy; 2026 ACME Corporation. All rights reserved.
+          </footer>
+        </SidebarInset>
+      </div>
     </SidebarProvider>
   );
 }
