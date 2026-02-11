@@ -4,58 +4,98 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-pnpm workspaces monorepo with three packages:
+pnpm workspaces monorepo — B2B管理ダッシュボード（ACME Admin）。テストアカウント: `admin` / `admin`
 
-- **`packages/main`** — React 19 frontend (Vite 7, TypeScript 5.9, Tailwind CSS 4)
-- **`packages/api`** — OpenAPI code generation (`@hey-api/openapi-ts`). Generated typed SDK and types from OpenAPI spec.
-- **`packages/mock-api`** — Hono-based mock API server (port 3000)
+- **`packages/main`** — React 19 フロントエンド (Vite 7, TypeScript 5.9, Tailwind CSS 4)
+- **`packages/api`** — OpenAPI コード生成 (`@hey-api/openapi-ts`)。mock-apiのOpenAPI specからSDK・型を自動生成
+- **`packages/mock-api`** — Hono + `@hono/zod-openapi` によるモックAPIサーバー (port 3000)
 
 ## Commands
 
-All commands run from the repository root.
+すべてリポジトリルートで実行。
 
 | Task                  | Command                                                         |
 | --------------------- | --------------------------------------------------------------- |
-| Start dev server      | `pnpm dev` (requires mock-api running)                          |
-| Start mock API        | `pnpm mock-api`                                                 |
+| Dev起動 (両方)        | `pnpm dev`                                                      |
+| Mock API単体          | `pnpm mock-api`                                                 |
 | Build                 | `pnpm build`                                                    |
-| Format                | `pnpm format`                                                   |
+| Format (oxfmt)        | `pnpm format`                                                   |
 | Format check          | `pnpm format:check`                                             |
-| Lint (all)            | `pnpm lint` (oxlint + ESLint)                                   |
-| Lint (oxlint only)    | `pnpm oxlint`                                                   |
-| Lint (ESLint only)    | `pnpm --filter @app/main lint`                                  |
+| Lint (oxlint + ESLint)| `pnpm lint`                                                     |
 | Type check            | `pnpm typecheck`                                                |
-| Run all tests         | `pnpm test`                                                     |
-| Run tests (watch)     | `pnpm --filter @app/main test:watch`                            |
-| Run single test       | `pnpm --filter @app/main vitest run src/__tests__/App.test.tsx` |
-| Regenerate API client | `pnpm generate:api`                                             |
+| Test全件              | `pnpm test`                                                     |
+| Test watch            | `pnpm --filter @app/main test:watch`                            |
+| Test単体              | `pnpm --filter @app/main vitest run src/__tests__/App.test.tsx` |
+| API SDK再生成         | `pnpm generate:api` (mock-api起動中に実行)                      |
 
 ## Architecture
 
 ### API Layer (OpenAPI-driven)
 
-1. OpenAPI spec lives at `packages/mock-api/openapi/petstore.yaml`
-2. `pnpm generate:api` produces typed SDK functions and types into `packages/api/src/generated/`
-3. Main app imports from `@app/api` (e.g., `listPets()`, `createPet()`, `showPetById()`)
-4. HTTP client: `@hey-api/client-fetch` with base URL `/api`
-5. Vite dev server proxies `/api/*` → `http://localhost:3000` (strips `/api` prefix)
+1. mock-apiの各ルート (`packages/mock-api/src/routes/`) が `@hono/zod-openapi` でスキーマ定義
+2. `pnpm generate:api` → `packages/api/src/generated/` にSDK関数・型を自動生成（**編集不可**）
+3. フロントエンドは `@app/api` からインポート（例: `getUsers()`, `postUsers()`, `getUsersByUserId()`）
+4. HTTPクライアント: `@hey-api/client-fetch`、ベースURL `/api`
+5. Vite dev serverが `/api/*` → `http://localhost:3000` へプロキシ（`/api`プレフィックスを除去）
+6. APIクライアント設定・認証インターセプタ: `src/features/auth/api-client.ts`
+7. SDK関数は `{ data, error }` タプルを返す（例外ではない）
 
-### Frontend Patterns
+### Routing (TanStack Router)
 
-- **State management:** Valtio (`proxy()` + `useSnapshot()`) — see `src/stores/`
-- **Forms:** React Hook Form + Zod schema validation (`@hookform/resolvers/zod`)
-- **UI components:** shadcn/ui (Radix UI primitives + Tailwind). Config in `components.json` (style: new-york)
-- **Path alias:** `@/*` maps to `./src/*`
-- **Custom resolve condition:** `@app/source` used in Vite and tsconfig for workspace package source imports
+ファイルベースルーティング。`@tanstack/router-plugin/vite` がルートツリーを自動生成（`routeTree.gen.ts`）。`autoCodeSplitting: true`。
+
+- `__root.tsx` — ルートレイアウト
+- `login.tsx` — ログインページ（パブリック）
+- `_authenticated.tsx` — 認証ガード（`beforeLoad`でトークン検証）+ シェルレイアウト（サイドバー・ヘッダー）
+- `_authenticated/` 配下 — 保護されたルート（dashboard, users, todos, audit-logs）
+- 各リソースは `users.tsx`（一覧レイアウト）+ `users/$userId.tsx`（詳細）+ `users/new.tsx`（作成）のパターン
+
+主な使い方:
+- `Route.useSearch()` — Zodで検証されたURLクエリパラメータ取得
+- `Route.useLoaderData()` — ルートローダーのデータ取得
+- `beforeLoad` — 認証ガード・リダイレクト
+
+### Data Fetching
+
+2つのパターンを使い分け:
+
+- **Route Loader**: 静的データ（ダッシュボード統計、詳細ページ）。`loader` + `pendingComponent`でスケルトン表示
+- **TanStack Query**: 検索・フィルタ付き一覧データ。`useQuery` + `keepPreviousData` + URLクエリパラメータ連動。ミューテーション後は `queryClient.invalidateQueries()` で再取得
+
+### State Management
+
+- **認証状態**: Valtio (`proxy()`) — `src/features/auth/auth.ts`。`authStore.token` をlocalStorageに永続化
+- **サーバーデータ**: TanStack Query + URLクエリパラメータ
+- **QueryClient**: `main.tsx` で作成し `QueryClientProvider` で提供
+
+### Forms
+
+React Hook Form + Zod スキーマバリデーション (`@hookform/resolvers/zod`)。
+カスタムフィールドコンポーネント: `src/components/form-fields.tsx`（`FormTextField`, `FormTextareaField`, `FormSelectField`）。
+
+### UI
+
+- **コンポーネント**: shadcn/ui (Radix UI + Tailwind CSS 4)。スタイル: new-york。アイコン: lucide-react
+- **レイアウト**: MasterDetailLayout（左:一覧、右:詳細/作成のOutlet）
+- **通知**: sonner（toast）
+- **パスエイリアス**: `@/*` → `./src/*`
+- **UIテキスト**: 日本語
 
 ### Testing
 
-- Vitest 3 with jsdom environment (`vitest.config.ts`)
-- `@testing-library/react` + `@testing-library/user-event`
-- Setup file: `src/test-setup.ts` (imports `@testing-library/jest-dom/vitest`)
-- Globals enabled (no need to import `describe`, `it`, `expect`)
+- Vitest 3 + jsdom + `@testing-library/react` + `@testing-library/user-event`
+- セットアップ: `src/test-setup.ts` (`@testing-library/jest-dom/vitest` をインポート)
+- グローバル有効（`describe`, `it`, `expect` のインポート不要）
 
 ### TypeScript
 
-- Strict mode with `noUnusedLocals`, `noUnusedParameters`, `noUncheckedSideEffectImports`
-- Root `tsconfig.json` uses project references for all packages
+- Strict mode + `noUnusedLocals` + `noUnusedParameters` + `noUncheckedSideEffectImports`
+- ルート `tsconfig.json` でプロジェクト参照
+- カスタム resolve condition: `@app/source`（Vite・tsconfigでワークスペースパッケージのソース直接参照に使用）
+
+### Linting & Formatting
+
+- **oxlint**: Rustベースリンター。設定: `.oxlintrc.json`
+- **ESLint**: `packages/main` のみ。フラットconfig (`eslint.config.js`)
+- **oxfmt**: Rustベースフォーマッター。設定: `.oxfmtrc.json`
+- 自動生成ファイル (`packages/api/src/generated`, `routeTree.gen.ts`) はlint・format対象外
