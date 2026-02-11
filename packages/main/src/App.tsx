@@ -18,12 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-import {
-  exampleStore,
-  incrementCount,
-  setPets,
-  addPet,
-} from "@/stores/example";
+import { exampleStore, incrementCount, setPets, addPet } from "@/stores/example";
 
 client.setConfig({ baseUrl: "/api" });
 
@@ -123,9 +118,7 @@ function App() {
             {snap.pets.map((pet) => (
               <li key={pet.id} className="rounded border p-3">
                 <span className="font-medium">{pet.name}</span>
-                {pet.tag && (
-                  <span className="ml-2 text-muted-foreground">({pet.tag})</span>
-                )}
+                {pet.tag && <span className="ml-2 text-muted-foreground">({pet.tag})</span>}
               </li>
             ))}
           </ul>

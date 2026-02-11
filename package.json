@@ -5,7 +5,18 @@
     "dev": "pnpm --filter @app/main dev",
     "build": "pnpm --filter @app/main build",
     "test": "pnpm --filter @app/main test",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "oxlint": "oxlint .",
+    "lint": "pnpm oxlint && pnpm --filter @app/main lint",
+    "typecheck": "tsc -b",
     "generate:api": "pnpm --filter @app/api generate",
     "mock-api": "pnpm --filter @app/mock-api dev"
+  },
+  "devDependencies": {
+    "eslint-plugin-oxlint": "^1.46.0",
+    "oxfmt": "^0.31.0",
+    "oxlint": "^1.46.0",
+    "typescript": "^5.9.3"
   }
 }

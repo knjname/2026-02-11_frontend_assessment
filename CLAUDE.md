@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 pnpm workspaces monorepo with three packages:
+
 - **`packages/main`** — React 19 frontend (Vite 7, TypeScript 5.9, Tailwind CSS 4)
 - **`packages/api`** — OpenAPI code generation (`@hey-api/openapi-ts`). Generated typed SDK and types from OpenAPI spec.
 - **`packages/mock-api`** — Hono-based mock API server (port 3000)
@@ -13,16 +14,21 @@ pnpm workspaces monorepo with three packages:
 
 All commands run from the repository root.
 
-| Task | Command |
-|---|---|
-| Start dev server | `pnpm dev` (requires mock-api running) |
-| Start mock API | `pnpm mock-api` |
-| Build | `pnpm build` |
-| Lint | `pnpm --filter @app/main lint` |
-| Run all tests | `pnpm test` |
-| Run tests (watch) | `pnpm --filter @app/main test:watch` |
-| Run single test | `pnpm --filter @app/main vitest run src/__tests__/App.test.tsx` |
-| Regenerate API client | `pnpm generate:api` |
+| Task                  | Command                                                         |
+| --------------------- | --------------------------------------------------------------- |
+| Start dev server      | `pnpm dev` (requires mock-api running)                          |
+| Start mock API        | `pnpm mock-api`                                                 |
+| Build                 | `pnpm build`                                                    |
+| Format                | `pnpm format`                                                   |
+| Format check          | `pnpm format:check`                                             |
+| Lint (all)            | `pnpm lint` (oxlint + ESLint)                                   |
+| Lint (oxlint only)    | `pnpm oxlint`                                                   |
+| Lint (ESLint only)    | `pnpm --filter @app/main lint`                                  |
+| Type check            | `pnpm typecheck`                                                |
+| Run all tests         | `pnpm test`                                                     |
+| Run tests (watch)     | `pnpm --filter @app/main test:watch`                            |
+| Run single test       | `pnpm --filter @app/main vitest run src/__tests__/App.test.tsx` |
+| Regenerate API client | `pnpm generate:api`                                             |
 
 ## Architecture
 
