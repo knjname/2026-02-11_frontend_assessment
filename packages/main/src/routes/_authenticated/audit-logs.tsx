@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { z } from "zod";
 import { getAuditLogs } from "@app/api";
 import type { GetAuditLogsData } from "@app/api";
 import { MasterDetailLayout } from "@/components/master-detail-layout";
 import { AuditLogListPane } from "@/features/audit-logs/audit-log-list-pane";
+import { AuditLogListPaneSkeleton } from "@/features/audit-logs/audit-log-list-pane.skeleton";
 
 const auditLogsSearchSchema = z.object({
   action: z.string().optional(),
@@ -25,12 +27,28 @@ export const Route = createFileRoute("/_authenticated/audit-logs")({
     });
     return data!;
   },
+  pendingComponent: AuditLogsLayout,
+  pendingMs: 200,
+  pendingMinMs: 300,
   component: AuditLogsLayout,
 });
 
 function AuditLogsLayout() {
-  const data = Route.useLoaderData();
   const search = Route.useSearch();
+  const { loaderData } = Route.useMatch();
+  const [staleData, setStaleData] = useState(loaderData);
+
+  if (loaderData && loaderData !== staleData) {
+    setStaleData(loaderData);
+  }
+
+  const data = loaderData ?? staleData;
+
+  if (!data) {
+    return (
+      <MasterDetailLayout list={<AuditLogListPaneSkeleton search={search} />} detail={<div />} />
+    );
+  }
 
   return (
     <MasterDetailLayout
