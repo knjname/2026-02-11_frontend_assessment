@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { z } from "zod";
 import { getUsers } from "@app/api";
+import type { User } from "@app/api";
 import { MasterDetailLayout } from "@/components/master-detail-layout";
 import { UserListPane } from "@/features/users/user-list-pane";
 import { UserListPaneSkeleton } from "@/features/users/user-list-pane.skeleton";
@@ -12,31 +13,21 @@ const usersSearchSchema = z.object({
   page: z.number().int().positive().optional().default(1),
 });
 
-export const Route = createFileRoute("/_authenticated/users")({
-  validateSearch: usersSearchSchema,
-  loaderDeps: ({ search }) => search,
-  loader: async ({ deps }) => {
-    const { data } = await getUsers({
-      query: { q: deps.q, role: deps.role, page: deps.page, pageSize: 20 },
-    });
-    return data!;
-  },
-  pendingComponent: UsersLayout,
-  pendingMs: 200,
-  pendingMinMs: 300,
-  component: UsersLayout,
-});
-
 function UsersLayout() {
   const search = Route.useSearch();
-  const { loaderData } = Route.useMatch();
-  const [staleData, setStaleData] = useState(loaderData);
+  const [data, setData] = useState<{ items: User[]; total: number } | null>(null);
 
-  if (loaderData && loaderData !== staleData) {
-    setStaleData(loaderData);
-  }
-
-  const data = loaderData ?? staleData;
+  useEffect(() => {
+    let cancelled = false;
+    getUsers({
+      query: { q: search.q, role: search.role, page: search.page, pageSize: 20 },
+    }).then(({ data: result }) => {
+      if (!cancelled) setData(result!);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [search.q, search.role, search.page]);
 
   if (!data) {
     return <MasterDetailLayout list={<UserListPaneSkeleton search={search} />} detail={<div />} />;
@@ -49,3 +40,8 @@ function UsersLayout() {
     />
   );
 }
+
+export const Route = createFileRoute("/_authenticated/users")({
+  validateSearch: usersSearchSchema,
+  component: UsersLayout,
+});

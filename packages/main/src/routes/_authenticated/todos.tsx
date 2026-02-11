@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { z } from "zod";
 import { getTodos } from "@app/api";
+import type { Todo } from "@app/api";
 import { MasterDetailLayout } from "@/components/master-detail-layout";
 import { TodoListPane } from "@/features/todos/todo-list-pane";
 import { TodoListPaneSkeleton } from "@/features/todos/todo-list-pane.skeleton";
@@ -13,37 +14,27 @@ const todosSearchSchema = z.object({
   page: z.number().int().positive().optional().default(1),
 });
 
-export const Route = createFileRoute("/_authenticated/todos")({
-  validateSearch: todosSearchSchema,
-  loaderDeps: ({ search }) => search,
-  loader: async ({ deps }) => {
-    const { data } = await getTodos({
-      query: {
-        q: deps.q,
-        status: deps.status,
-        priority: deps.priority,
-        page: deps.page,
-        pageSize: 20,
-      },
-    });
-    return data!;
-  },
-  pendingComponent: TodosLayout,
-  pendingMs: 200,
-  pendingMinMs: 300,
-  component: TodosLayout,
-});
-
 function TodosLayout() {
   const search = Route.useSearch();
-  const { loaderData } = Route.useMatch();
-  const [staleData, setStaleData] = useState(loaderData);
+  const [data, setData] = useState<{ items: Todo[]; total: number } | null>(null);
 
-  if (loaderData && loaderData !== staleData) {
-    setStaleData(loaderData);
-  }
-
-  const data = loaderData ?? staleData;
+  useEffect(() => {
+    let cancelled = false;
+    getTodos({
+      query: {
+        q: search.q,
+        status: search.status,
+        priority: search.priority,
+        page: search.page,
+        pageSize: 20,
+      },
+    }).then(({ data: result }) => {
+      if (!cancelled) setData(result!);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [search.q, search.status, search.priority, search.page]);
 
   if (!data) {
     return <MasterDetailLayout list={<TodoListPaneSkeleton search={search} />} detail={<div />} />;
@@ -56,3 +47,8 @@ function TodosLayout() {
     />
   );
 }
+
+export const Route = createFileRoute("/_authenticated/todos")({
+  validateSearch: todosSearchSchema,
+  component: TodosLayout,
+});
