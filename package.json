@@ -1,7 +1,6 @@
 {
   "name": "@app/root",
   "private": true,
-  "packageManager": "pnpm@10.28.2",
   "scripts": {
     "dev": "pnpm --filter @app/main dev",
     "build": "pnpm --filter @app/main build",
@@ -19,5 +18,6 @@
     "oxfmt": "^0.31.0",
     "oxlint": "^1.46.0",
     "typescript": "^5.9.3"
-  }
+  },
+  "packageManager": "pnpm@10.28.2"
 }
