@@ -1,6 +1,7 @@
 {
   "name": "@app/root",
   "private": true,
+  "packageManager": "pnpm@10.28.2",
   "scripts": {
     "dev": "pnpm --filter @app/main dev",
     "build": "pnpm --filter @app/main build",
