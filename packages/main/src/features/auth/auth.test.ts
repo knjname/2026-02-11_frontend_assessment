@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from "vitest";
 import { authStore, setAuth, clearAuth } from "./auth";
 
 describe("authStore", () => {
